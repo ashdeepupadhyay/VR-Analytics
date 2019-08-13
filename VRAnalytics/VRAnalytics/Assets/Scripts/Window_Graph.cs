@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 
@@ -24,7 +25,7 @@ public class Window_Graph : MonoBehaviour
     private const float API_CHECK_MAXTIME = 1 * 60.0f; //1 minutes
     private float apiCheckCountdown = API_CHECK_MAXTIME;
  
-    private static Window_Graph instance;
+    public static Window_Graph instance;
 
     [SerializeField]
     private Sprite dot;
@@ -75,8 +76,8 @@ public class Window_Graph : MonoBehaviour
         IGraphVisual lineGraphVisual= new LineGraphVisual(graphContainer, dot, Color.green, Color.white);
         IGraphVisual barGraphVisual=new BarChartVisual(graphContainer, Color.green, 0.8f);
 
-        transform.Find("barGraphButton").GetComponent<Button>().onClick.AddListener(()=>SetGraphVisual(barGraphVisual));
-        transform.Find("LineGraphButton").GetComponent<Button>().onClick.AddListener(() => SetGraphVisual(lineGraphVisual));
+        transform.Find("barGraphButton").GetComponent<Button>().onClick.AddListener(()=>SetGraphVisual("barGraphVisual"));
+        transform.Find("LineGraphButton").GetComponent<Button>().onClick.AddListener(() => SetGraphVisual("lineGraphVisual"));
         transform.Find("increaseVisibleButton").GetComponent<Button>().onClick.AddListener(() => IncreaseGraphVisual());
         transform.Find("decreaseVisibleButton").GetComponent<Button>().onClick.AddListener(() => DecreaseGraphVisual());
         transform.Find("DollarYlabelButton").GetComponent<Button>().onClick.AddListener(() => SetGetAxisLabelY((float _f) => "$" + Mathf.RoundToInt(_f)));
@@ -96,9 +97,9 @@ public class Window_Graph : MonoBehaviour
         {
             StartCoroutine(GetJson());
             apiCheckCountdown = API_CHECK_MAXTIME;
-        }
+        }       
     }
-
+    
     IEnumerator GetJson()
     {
         UnityWebRequest www = UnityWebRequest.Get(URL);
@@ -164,17 +165,26 @@ public class Window_Graph : MonoBehaviour
     {
         ShowGraph(this.valueList, this.graphVisual, this.maxVisibleValueAmount, this.getAxisLabelX, getAxisLabelY);
     }
-    public void SetGraphVisual(IGraphVisual graphVisual)
-    {
-        ShowGraph(this.valueList, graphVisual,this.maxVisibleValueAmount,this.getAxisLabelX,this.getAxisLabelY);
+    public void SetGraphVisual(string graphVisual)
+    { 
+        IGraphVisual lineGraphVisual = new LineGraphVisual(graphContainer, dot, Color.green, Color.white);
+        IGraphVisual barGraphVisual = new BarChartVisual(graphContainer, Color.green, 0.8f);
+        if (graphVisual== "barGraphVisual")
+        {
+            ShowGraph(this.valueList, barGraphVisual, this.maxVisibleValueAmount, this.getAxisLabelX, this.getAxisLabelY);
+        }
+        else
+        {
+            ShowGraph(this.valueList, lineGraphVisual, this.maxVisibleValueAmount, this.getAxisLabelX, this.getAxisLabelY);
+        }
     }
 
-    private void IncreaseGraphVisual()
+    public void IncreaseGraphVisual()
     {
         ShowGraph(this.valueList, graphVisual, this.maxVisibleValueAmount+1, this.getAxisLabelX, this.getAxisLabelY);
     }
 
-    private void DecreaseGraphVisual()
+    public void DecreaseGraphVisual()
     {
         ShowGraph(this.valueList, graphVisual, this.maxVisibleValueAmount - 1, this.getAxisLabelX, this.getAxisLabelY);
     }
@@ -345,6 +355,9 @@ public class Window_Graph : MonoBehaviour
             }
         }
     }
+
+    
+
     public interface IGraphVisual
     {
         IGraphVisualObject CreateGraphVisualObject(Vector2 graphPosition, float graphPositionWidth,string toolTipText);
